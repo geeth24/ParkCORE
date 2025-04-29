@@ -22,7 +22,11 @@ public class ParkourController : MonoBehaviour
     {
         var hitData = environmentScanner.ObstacleCheck();
 
-        if (Input.GetButton("Jump") && !playerController.InAction && !playerController.IsHanging)
+        // Support clicking to jump/climb
+        bool clickJump = Input.GetButtonDown("Jump") || Input.GetMouseButtonDown(0);
+        bool holdJump = Input.GetButton("Jump") || Input.GetMouseButton(0);
+
+        if (clickJump && !playerController.InAction && !playerController.IsHanging)
         {
             if (hitData.forwardHitFound)
             {
@@ -40,7 +44,7 @@ public class ParkourController : MonoBehaviour
         if (playerController.IsOnLedge && !playerController.InAction && !hitData.forwardHitFound)
         {
             bool shouldJump = true;
-            if (playerController.LedgeData.height > autoDropHeightLimit && !Input.GetButton("Jump"))
+            if (playerController.LedgeData.height > autoDropHeightLimit && !holdJump)
                 shouldJump = false;
 
             if (shouldJump && playerController.LedgeData.angle <= 50)

@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float jumpForce = 5f;
     [SerializeField] float airControlFactor = 0.7f;
     [SerializeField] float jumpCooldown = 0.1f;
+    [SerializeField] float sprintMultiplier = 1.5f;
 
     [Header("Ground Check Settings")]
     [SerializeField] float groundCheckRadius = 0.2f;
@@ -48,10 +49,9 @@ public class PlayerController : MonoBehaviour
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-
-        float moveAmount = Mathf.Clamp01(Mathf.Abs(h) + Mathf.Abs(v));
-
-        var moveInput = (new Vector3(h, 0, v)).normalized;
+        bool clickRun = Input.GetMouseButton(0);
+        float moveAmount = clickRun ? 1f : Mathf.Clamp01(Mathf.Abs(h) + Mathf.Abs(v));
+        var moveInput = clickRun ? Vector3.forward : (new Vector3(h, 0, v)).normalized;
 
         desiredMoveDir = cameraController.PlanarRotation * moveInput;
         moveDir = desiredMoveDir;
@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour
         GroundCheck();
         animator.SetBool("isGrounded", isGrounded);
         
-        // Handle jumping
+        // Handle jumping (space only)
         if (isGrounded && Input.GetButtonDown("Jump") && canJump && !InAction)
         {
             Jump();
@@ -74,7 +74,8 @@ public class PlayerController : MonoBehaviour
         if (isGrounded)
         {
             ySpeed = -0.5f;
-            velocity = desiredMoveDir * moveSpeed;
+            float speed = moveSpeed * (clickRun ? sprintMultiplier : 1f);
+            velocity = desiredMoveDir * speed;
 
             // Only check for ledge if we're not intentionally trying to go off the edge
             if (moveAmount > 0 && Physics.Raycast(transform.position + desiredMoveDir * 0.5f, Vector3.down, 2f, groundLayer))
@@ -97,14 +98,12 @@ public class PlayerController : MonoBehaviour
         {
             // Apply gravity
             ySpeed += Physics.gravity.y * Time.deltaTime;
-            
-            // Apply air control but with reduced effect
-            velocity = desiredMoveDir * moveSpeed * airControlFactor;
+            float speedAir = moveSpeed * (clickRun ? sprintMultiplier : 1f);
+            velocity = desiredMoveDir * speedAir * airControlFactor;
             
             // Set air animation blend
             animator.SetFloat("moveAmount", velocity.magnitude / moveSpeed, 0.2f, Time.deltaTime);
         }
-
 
         velocity.y = ySpeed;
 
@@ -117,21 +116,17 @@ public class PlayerController : MonoBehaviour
 
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation,
             rotationSpeed * Time.deltaTime);
-
-
     }
 
     void Jump()
     {
         // Apply more initial force for a snappier jump
         ySpeed = jumpForce;
-        
+        isGrounded = false;
         // Ensure we're really leaving the ground
         transform.position += Vector3.up * 0.1f;
-        
-        // Trigger jump animation
+        // Trigger jump animation using the Animator's transitions
         animator.SetTrigger("jump");
-        
         // Start cooldown
         canJump = false;
         StartCoroutine(ResetJumpCooldown());
@@ -147,15 +142,23 @@ public class PlayerController : MonoBehaviour
     {
         // Previous ground state for transition detection
         bool wasGrounded = isGrounded;
-        
-        isGrounded = Physics.CheckSphere(transform.TransformPoint(groundCheckOffset), groundCheckRadius, groundLayer);
-        
+
+        // Skip ground check when moving upward to prevent immediate ground detection after jump
+        if (ySpeed > 0f)
+        {
+            isGrounded = false;
+        }
+        else
+        {
+            isGrounded = Physics.CheckSphere(transform.TransformPoint(groundCheckOffset), groundCheckRadius, groundLayer);
+        }
+
         // Make character fall immediately when stepping off a ledge
         if (!isGrounded && desiredMoveDir.magnitude > 0.05f)
         {
             ySpeed = -2f; // Increased negative value for faster falling
         }
-        
+
         // If we just landed, apply a small downward force to "stick" to the ground
         if (!wasGrounded && isGrounded)
         {
@@ -271,7 +274,6 @@ public class PlayerController : MonoBehaviour
     {
         targetRotation = transform.rotation;
     }
-
 
     public bool HasControl {
         get => hasControl;
