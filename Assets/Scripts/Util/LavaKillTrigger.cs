@@ -1,15 +1,19 @@
 using UnityEngine;
 
-public class KillZone : MonoBehaviour
+public class LavaKillTrigger : MonoBehaviour
 {
-    [SerializeField] private Transform playerRespawnPoint;
-    [SerializeField] private float resetDelay = 0.5f;
-    
+    private Transform playerRespawnPoint;
+    private string playerTag = "Player";
+    private LayerMask playerLayerMask;
+    private float resetDelay = 0.5f;
     private GameManager gameManager;
     
-    public void SetRespawnPoint(Transform respawnPoint)
+    public void Initialize(Transform respawnPoint, string tag, LayerMask layerMask)
     {
         playerRespawnPoint = respawnPoint;
+        playerTag = tag;
+        playerLayerMask = layerMask;
+        resetDelay = 0.5f;
     }
     
     private void Start()
@@ -17,32 +21,34 @@ public class KillZone : MonoBehaviour
         // Verify respawn point is set
         if (playerRespawnPoint == null)
         {
-            Debug.LogError("KillZone: Player Respawn Point is not set!");
-        }
-        
-        // Make sure the collider is set to trigger
-        var collider = GetComponent<Collider>();
-        if (collider != null && !collider.isTrigger)
-        {
-            Debug.LogWarning("KillZone: Collider is not set as trigger! Setting it now.");
-            collider.isTrigger = true;
+            Debug.LogError("LavaKillTrigger: Player Respawn Point is not set!");
+            
+            // Try to find the respawn point in the scene
+            GameObject respawnPointObj = GameObject.Find("PlayerRespawnPoint");
+            if (respawnPointObj != null)
+            {
+                playerRespawnPoint = respawnPointObj.transform;
+                Debug.Log("LavaKillTrigger: Found PlayerRespawnPoint in scene.");
+            }
         }
         
         // Find game manager
         gameManager = GameManager.Instance;
         if (gameManager == null)
         {
-            Debug.LogWarning("KillZone: GameManager not found! Lives system will not work.");
+            Debug.LogWarning("LavaKillTrigger: GameManager not found! Lives system will not work.");
         }
     }
     
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"KillZone: Something entered trigger - Tag: {other.tag}");
+        // Check if the collider is on the player layer or has the player tag
+        bool isPlayer = other.CompareTag(playerTag);
+        bool isPlayerLayer = (playerLayerMask.value & (1 << other.gameObject.layer)) != 0;
         
-        if (other.CompareTag("Player"))
+        if (isPlayer || isPlayerLayer)
         {
-            Debug.Log("KillZone: Player detected, starting reset");
+            Debug.Log("LavaKillTrigger: Player detected, starting reset");
             
             // Deduct a life
             if (gameManager != null)
@@ -56,18 +62,18 @@ public class KillZone : MonoBehaviour
 
     private System.Collections.IEnumerator ResetPlayer(GameObject player)
     {
-        Debug.Log("KillZone: Starting player reset sequence");
+        Debug.Log("LavaKillTrigger: Starting player reset sequence");
         
         // Disable player control temporarily
         var playerController = player.GetComponent<PlayerController>();
         if (playerController != null)
         {
-            Debug.Log("KillZone: Disabling player control");
+            Debug.Log("LavaKillTrigger: Disabling player control");
             playerController.SetControl(false);
         }
         else
         {
-            Debug.LogError("KillZone: PlayerController component not found on player!");
+            Debug.LogWarning("LavaKillTrigger: PlayerController component not found on player!");
         }
 
         // Wait for the delay
@@ -78,7 +84,7 @@ public class KillZone : MonoBehaviour
         {
             if (playerRespawnPoint != null)
             {
-                Debug.Log($"KillZone: Resetting player to position {playerRespawnPoint.position}");
+                Debug.Log($"LavaKillTrigger: Resetting player to position {playerRespawnPoint.position}");
                 // Reset player position slightly above the point
                 Vector3 respawnPosition = playerRespawnPoint.position + Vector3.up * 1.5f; // Added offset
                 player.transform.position = respawnPosition;
@@ -88,7 +94,7 @@ public class KillZone : MonoBehaviour
             // Re-enable player control
             if (playerController != null)
             {
-                Debug.Log("KillZone: Re-enabling player control");
+                Debug.Log("LavaKillTrigger: Re-enabling player control");
                 playerController.SetControl(true);
             }
         }
