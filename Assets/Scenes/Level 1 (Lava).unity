@@ -163,9 +163,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29db59c3e8de42aea6649227fbac414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxLives: 100
+  maxLives: 1
   gameOverDelay: 2
-  gameOverSceneName: GameOver
+  gameOverSceneName: GameOverScene
   livesUISceneName: LivesScene
 --- !u!1 &130934527
 GameObject:
@@ -1788,7 +1788,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721116497}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2f88fb2ab625f49cfad633959d3621ee, type: 3}
   m_Name: 

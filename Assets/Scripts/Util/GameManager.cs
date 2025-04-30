@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private int maxLives = 3;
     [SerializeField] private float gameOverDelay = 2f;
-    [SerializeField] private string gameOverSceneName = "GameOver";
+    [SerializeField] private string gameOverSceneName = "GameOverScene";
     [SerializeField] private string livesUISceneName = "LivesScene";
     
     private int currentLives;
@@ -21,13 +21,39 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("GameManager: Instance initialized and set to DontDestroyOnLoad");
         }
         else
         {
+            Debug.Log("GameManager: Duplicate instance found, destroying this one");
             Destroy(gameObject);
+            return;
         }
         
         currentLives = maxLives;
+        
+        // Register to scene loaded event to ensure UI is loaded
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    
+    private void OnDestroy()
+    {
+        // Unregister from event when destroyed
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+    
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Skip if this is the GameOverScene
+        if (scene.name == gameOverSceneName)
+            return;
+            
+        // Check if Lives UI scene is loaded
+        if (!string.IsNullOrEmpty(livesUISceneName) && !SceneManager.GetSceneByName(livesUISceneName).isLoaded)
+        {
+            Debug.Log($"GameManager: Loading Lives UI scene after scene change: {livesUISceneName}");
+            SceneManager.LoadSceneAsync(livesUISceneName, LoadSceneMode.Additive);
+        }
     }
     
     private void Start()
@@ -66,18 +92,17 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Game Over!");
         
-        yield return new WaitForSeconds(gameOverDelay);
-        
-        // Option 1: Load a Game Over scene
+        // Load the Game Over scene immediately
         if (!string.IsNullOrEmpty(gameOverSceneName))
         {
+            Debug.Log($"GameManager: Loading Game Over scene: {gameOverSceneName}");
             SceneManager.LoadScene(gameOverSceneName);
+            yield break; // Exit the coroutine after loading the scene
         }
-        // Option 2: Just restart the current scene
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        
+        // If gameOverSceneName is not set, use the delay and restart current scene
+        yield return new WaitForSeconds(gameOverDelay);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
     public void ResetLives()
