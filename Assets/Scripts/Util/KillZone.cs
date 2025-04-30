@@ -5,6 +5,8 @@ public class KillZone : MonoBehaviour
     [SerializeField] private Transform playerRespawnPoint;
     [SerializeField] private float resetDelay = 0.5f;
     
+    private GameManager gameManager;
+    
     private void Start()
     {
         // Verify respawn point is set
@@ -20,6 +22,13 @@ public class KillZone : MonoBehaviour
             Debug.LogWarning("KillZone: Collider is not set as trigger! Setting it now.");
             collider.isTrigger = true;
         }
+        
+        // Find game manager
+        gameManager = GameManager.Instance;
+        if (gameManager == null)
+        {
+            Debug.LogWarning("KillZone: GameManager not found! Lives system will not work.");
+        }
     }
     
     private void OnTriggerEnter(Collider other)
@@ -29,6 +38,13 @@ public class KillZone : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log("KillZone: Player detected, starting reset");
+            
+            // Deduct a life
+            if (gameManager != null)
+            {
+                gameManager.LoseLife();
+            }
+            
             StartCoroutine(ResetPlayer(other.gameObject));
         }
     }
@@ -52,19 +68,24 @@ public class KillZone : MonoBehaviour
         // Wait for the delay
         yield return new WaitForSeconds(resetDelay);
 
-        if (playerRespawnPoint != null)
+        // Only respawn if we haven't reached game over (0 lives)
+        if (gameManager == null || gameManager.CurrentLives > 0)
         {
-            Debug.Log($"KillZone: Resetting player to position {playerRespawnPoint.position}");
-            // Reset player position
-            player.transform.position = playerRespawnPoint.position;
-            player.transform.rotation = playerRespawnPoint.rotation;
-        }
+            if (playerRespawnPoint != null)
+            {
+                Debug.Log($"KillZone: Resetting player to position {playerRespawnPoint.position}");
+                // Reset player position slightly above the point
+                Vector3 respawnPosition = playerRespawnPoint.position + Vector3.up * 1.5f; // Added offset
+                player.transform.position = respawnPosition;
+                player.transform.rotation = playerRespawnPoint.rotation;
+            }
 
-        // Re-enable player control
-        if (playerController != null)
-        {
-            Debug.Log("KillZone: Re-enabling player control");
-            playerController.SetControl(true);
+            // Re-enable player control
+            if (playerController != null)
+            {
+                Debug.Log("KillZone: Re-enabling player control");
+                playerController.SetControl(true);
+            }
         }
     }
 } 

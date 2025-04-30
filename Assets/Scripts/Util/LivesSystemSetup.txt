@@ -1,0 +1,52 @@
+========== LIVES SYSTEM SETUP INSTRUCTIONS ==========
+
+1. GAME MANAGER SETUP:
+   - In your **main starting scene** (e.g., Main Menu or the first level), create an empty GameObject.
+   - Name it "GameManager".
+   - Add the `GameManager` script to this GameObject.
+   - Configure the following settings in the Inspector:
+     - Max Lives: Set to 3 (or your preferred number).
+     - Game Over Delay: Time in seconds before loading Game Over scene.
+     - Game Over Scene Name: Name of your Game Over scene (leave empty to just restart current scene).
+     - Lives UI Scene Name: Set this to "LivesScene".
+   - Make sure this `GameManager` object persists across scenes (it uses `DontDestroyOnLoad`).
+
+2. LIVES UI SCENE SETUP:
+   - Create a new scene named "LivesScene" (or the name you put in `GameManager`).
+   - In this "LivesScene", create your Canvas and UI elements for displaying lives (either Option A or B below).
+   - Add the `LivesUI` script to the appropriate GameObject within the Canvas (e.g., the Horizontal Layout Group or the TextMeshPro object).
+   - Configure the `LivesUI` script in the Inspector (assign Text or Images/Sprites).
+
+   OPTION A - Icon-based Lives Display (in LivesScene):
+   - Create a Canvas GameObject (UI > Canvas).
+   - Add a Horizontal Layout Group (Right-click Canvas > UI > Horizontal Layout Group).
+   - Name it "LivesDisplay".
+   - Position it (e.g., top-left).
+   - Add Image components as children.
+   - Add `LivesUI` script to "LivesDisplay".
+   - Assign Images and Sprites in the Inspector.
+   - Ensure "Use Icons Mode" is checked.
+
+   OPTION B - Text-based Lives Display (in LivesScene):
+   - Create a Canvas GameObject (UI > Canvas).
+   - Add a TextMeshPro - Text component (Right-click Canvas > UI > TextMeshPro - Text).
+   - Name it "LivesText".
+   - Position it.
+   - Add `LivesUI` script to "LivesText".
+   - Assign the TextMeshPro component in the Inspector.
+   - Ensure "Use Icons Mode" is unchecked.
+
+3. LEVEL SCENE (e.g., "Level 1 Lava") SETUP:
+   - **Remove any existing Canvas or UI elements related to lives display from your level scenes.** The UI will now be loaded from "LivesScene".
+   - Ensure your KillZones have respawn points assigned.
+
+4. SCENE MANAGEMENT:
+   - Add **both** your level scene(s) (e.g., "Level 1 Lava") AND the "LivesScene" to your Build Settings (File > Build Settings).
+   - If using a "GameOver" scene, add that too.
+   - Ensure your **starting scene** (the one with the persistent GameManager) is the first scene (index 0) in the Build Settings.
+
+5. TESTING:
+   - Start the game from your main starting scene.
+   - Verify the lives UI from "LivesScene" loads correctly on top of your level.
+   - Test falling into KillZones.
+   - Verify game over works. 
