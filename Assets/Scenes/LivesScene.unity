@@ -152,10 +152,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 841703203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 485.95, y: 176.75}
-  m_SizeDelta: {x: -114.899994, y: 100}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -312.55005, y: -50}
+  m_SizeDelta: {x: 625.1, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &82872310
 MonoBehaviour:
@@ -174,6 +174,7 @@ MonoBehaviour:
   activeLifeSprite: {fileID: 0}
   inactiveLifeSprite: {fileID: 0}
   useIconsMode: 0
+  retryInterval: 0.5
 --- !u!114 &82872311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,7 +260,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -3.0562744, y: 0, z: 0, w: 44.493896}
+  m_margin: {x: 199.47504, y: 0, z: 0, w: -0.10498047}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -310,6 +311,7 @@ MonoBehaviour:
   activeLifeSprite: {fileID: 0}
   inactiveLifeSprite: {fileID: 0}
   useIconsMode: 1
+  retryInterval: 0.5
 --- !u!114 &841703200
 MonoBehaviour:
   m_ObjectHideFlags: 0
