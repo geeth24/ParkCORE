@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(Collider))]
 public class VictoryTrigger : MonoBehaviour
 {
-    [SerializeField] private string victoryMessage = "Good Job, You beat the lava"; // Corrected typo
+    [SerializeField] private string victoryMessage = "Victory, You beat the lava";
     [SerializeField] private string gameOverSceneName = "GameOverScene";
 
     private void OnTriggerEnter(Collider other)

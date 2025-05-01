@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29db59c3e8de42aea6649227fbac414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxLives: 1
+  maxLives: 3
   gameOverDelay: 2
   gameOverSceneName: GameOverScene
   livesUISceneName: LivesScene

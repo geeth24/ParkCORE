@@ -98,7 +98,7 @@ public class GameManager : MonoBehaviour
         if (currentLives <= 0)
         {
             // Ensure default message is used for losing all lives
-            ResetGameOverMessage(); 
+            SetGameOverMessage("Out of Lives! Game Over!"); // Set specific message for 0 lives
             StartCoroutine(GameOver());
         }
     }
