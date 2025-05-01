@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro; // Add this if TextMeshPro operations are needed directly here, otherwise might belong in GameOverUI
 
 public class GameManager : MonoBehaviour
 {
@@ -7,25 +8,30 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameOverDelay = 2f;
     [SerializeField] private string gameOverSceneName = "GameOverScene";
     [SerializeField] private string livesUISceneName = "LivesScene";
-    
+    // Optional: Reference to a TextMeshProUGUI in the main game scene if needed, unlikely for game over message
+    // [SerializeField] private TextMeshProUGUI gameOverTextDisplay; 
+
     private int currentLives;
     
     public static GameManager Instance { get; private set; }
+    public static string CustomGameOverMessage { get; private set; } = "Game Over!"; // Default message
     
     public int CurrentLives => currentLives;
     public int MaxLives => maxLives;
     
     private void Awake()
     {
+        Debug.Log($"GameManager: Awake() called on GameObject '{gameObject.name}' in scene '{SceneManager.GetActiveScene().name}'");
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("GameManager: Instance initialized and set to DontDestroyOnLoad");
+            Debug.Log("GameManager: Instance assigned and marked DontDestroyOnLoad.");
+            ResetGameOverMessage(); // Ensure default message on start/reload
         }
         else
         {
-            Debug.Log("GameManager: Duplicate instance found, destroying this one");
+            Debug.Log($"GameManager: Duplicate instance found ('{gameObject.name}'), destroying this one.");
             Destroy(gameObject);
             return;
         }
@@ -38,8 +44,15 @@ public class GameManager : MonoBehaviour
     
     private void OnDestroy()
     {
+        Debug.Log($"GameManager: OnDestroy() called on GameObject '{gameObject.name}'. Is this the persistent instance? {(Instance == this ? "YES" : "NO - Likely a duplicate or scene unload")}");
         // Unregister from event when destroyed
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        // If this *is* the singleton instance being destroyed, nullify the static reference
+        if (Instance == this)
+        {
+            Instance = null;
+            Debug.Log("GameManager: Static Instance reference nulled.");
+        }
     }
     
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -84,6 +97,8 @@ public class GameManager : MonoBehaviour
         
         if (currentLives <= 0)
         {
+            // Ensure default message is used for losing all lives
+            ResetGameOverMessage(); 
             StartCoroutine(GameOver());
         }
     }
@@ -96,6 +111,7 @@ public class GameManager : MonoBehaviour
         if (!string.IsNullOrEmpty(gameOverSceneName))
         {
             Debug.Log($"GameManager: Loading Game Over scene: {gameOverSceneName}");
+            // Message is set *before* calling this typically
             SceneManager.LoadScene(gameOverSceneName);
             yield break; // Exit the coroutine after loading the scene
         }
@@ -108,5 +124,18 @@ public class GameManager : MonoBehaviour
     public void ResetLives()
     {
         currentLives = maxLives;
+        ResetGameOverMessage(); // Also reset message when lives are reset
+    }
+
+    public static void SetGameOverMessage(string message)
+    {
+        CustomGameOverMessage = message;
+        Debug.Log($"GameManager: Custom game over message set: {message}");
+    }
+
+    public static void ResetGameOverMessage()
+    {
+        CustomGameOverMessage = "Game Over!"; // Reset to default
+        Debug.Log("GameManager: Game over message reset to default.");
     }
 } 

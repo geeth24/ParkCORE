@@ -1983,7 +1983,7 @@ Transform:
   m_GameObject: {fileID: 1096754096}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.000002, y: 1.1057367, z: -45.019566}
+  m_LocalPosition: {x: 17.999998, y: 37.105736, z: 1.980434}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3168,6 +3168,7 @@ GameObject:
   - component: {fileID: 1413221499}
   - component: {fileID: 1413221498}
   - component: {fileID: 1413221497}
+  - component: {fileID: 1413221500}
   m_Layer: 6
   m_Name: Cube (9)
   m_TagString: Untagged
@@ -3205,7 +3206,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -3264,6 +3265,20 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1413221495}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1413221500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1413221495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3222bbc8ec5d4fb2baeab3010d5d4e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  victoryMessage: Good Job, You beat the lava
+  gameOverSceneName: GameOverScene
 --- !u!1 &1441059385
 GameObject:
   m_ObjectHideFlags: 0
