@@ -57,9 +57,12 @@ public class GameManager : MonoBehaviour
     
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Skip if this is the GameOverScene
+        // If this is the GameOverScene, show the cursor
         if (scene.name == gameOverSceneName)
+        {
+            ShowCursor();
             return;
+        }
             
         // Check if Lives UI scene is loaded
         if (!string.IsNullOrEmpty(livesUISceneName) && !SceneManager.GetSceneByName(livesUISceneName).isLoaded)
@@ -107,6 +110,12 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Game Over!");
         
+        // Stop lava rising and music
+        StopLavaAndMusic();
+        
+        // Show cursor
+        ShowCursor();
+        
         // Load the Game Over scene immediately
         if (!string.IsNullOrEmpty(gameOverSceneName))
         {
@@ -119,6 +128,29 @@ public class GameManager : MonoBehaviour
         // If gameOverSceneName is not set, use the delay and restart current scene
         yield return new WaitForSeconds(gameOverDelay);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    
+    private void StopLavaAndMusic()
+    {
+        // Find all LavaRiser components in the scene and stop them
+        LavaRiser[] lavaRisers = FindObjectsOfType<LavaRiser>();
+        foreach (LavaRiser riser in lavaRisers)
+        {
+            riser.StopRising();
+        }
+
+        // Stop music via AudioManager if available
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopLavaRisingSound();
+        }
+    }
+    
+    private void ShowCursor()
+    {
+        Debug.Log("GameManager: Showing cursor for game over screen");
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
     
     public void ResetLives()

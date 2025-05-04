@@ -25,6 +25,7 @@ public class LavaRiser : MonoBehaviour
     private int lastLivesCount;
     private Vector3 planeSize;
     private bool isRising = false;
+    private bool shouldRise = true;
     
     private void Start()
     {
@@ -223,6 +224,9 @@ public class LavaRiser : MonoBehaviour
             lastLivesCount = gameManager.CurrentLives;
         }
         
+        // Only rise if not stopped
+        if (!shouldRise) return;
+        
         // Move the kill zone up gradually
         if (killZoneObject.transform.position.y < maxHeight)
         {
@@ -328,5 +332,26 @@ public class LavaRiser : MonoBehaviour
         {
             CreateKillZoneVisualizer();
         }
+    }
+    
+    // Public method to stop the lava from rising
+    public void StopRising()
+    {
+        Debug.Log("LavaRiser: Stopping lava from rising");
+        shouldRise = false;
+        
+        // Stop the sound if it's playing
+        if (isRising && audioManager != null)
+        {
+            audioManager.StopLavaRisingSound();
+            isRising = false;
+        }
+    }
+    
+    // Public method to resume rising if needed
+    public void ResumeRising()
+    {
+        Debug.Log("LavaRiser: Resuming lava rising");
+        shouldRise = true;
     }
 } 

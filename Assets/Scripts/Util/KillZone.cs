@@ -92,5 +92,27 @@ public class KillZone : MonoBehaviour
                 playerController.SetControl(true);
             }
         }
+        else
+        {
+            // Player has no more lives, stop lava and music
+            // (GameManager will handle loading game over scene)
+            StopLavaAndMusic();
+        }
+    }
+    
+    private void StopLavaAndMusic()
+    {
+        // Find all LavaRiser components in the scene and stop them
+        LavaRiser[] lavaRisers = FindObjectsOfType<LavaRiser>();
+        foreach (LavaRiser riser in lavaRisers)
+        {
+            riser.StopRising();
+        }
+
+        // Stop music via AudioManager if available
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopLavaRisingSound();
+        }
     }
 } 

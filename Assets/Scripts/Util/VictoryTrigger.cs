@@ -25,6 +25,12 @@ public class VictoryTrigger : MonoBehaviour
                 // Optionally handle this case, maybe load scene anyway with default message?
             }
 
+            // Stop lava rising and music
+            StopLavaAndMusic();
+
+            // Show cursor
+            ShowCursor();
+
             // Load the Game Over scene
             if (!string.IsNullOrEmpty(gameOverSceneName))
             {
@@ -35,6 +41,29 @@ public class VictoryTrigger : MonoBehaviour
             {
                 Debug.LogError("VictoryTrigger: Game Over Scene Name is not set in the inspector!");
             }
+        }
+    }
+
+    private void ShowCursor()
+    {
+        Debug.Log("VictoryTrigger: Showing cursor for victory screen");
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void StopLavaAndMusic()
+    {
+        // Find all LavaRiser components in the scene and stop them
+        LavaRiser[] lavaRisers = FindObjectsOfType<LavaRiser>();
+        foreach (LavaRiser riser in lavaRisers)
+        {
+            riser.StopRising();
+        }
+
+        // Stop music via AudioManager if available
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopLavaRisingSound();
         }
     }
 
