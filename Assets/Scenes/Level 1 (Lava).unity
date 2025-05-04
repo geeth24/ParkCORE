@@ -1807,7 +1807,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e3005e6058e64d04873e30e2e02c757, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  riseSpeed: 0.2
+  riseSpeed: 0.3
   maxHeight: 100
   startHeight: -1
   playerRespawnPoint: {fileID: 0}
