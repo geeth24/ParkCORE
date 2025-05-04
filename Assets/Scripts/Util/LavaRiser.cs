@@ -21,8 +21,10 @@ public class LavaRiser : MonoBehaviour
     private GameObject killZoneObject;
     private GameObject visualizerObject;
     private GameManager gameManager;
+    private AudioManager audioManager;
     private int lastLivesCount;
     private Vector3 planeSize;
+    private bool isRising = false;
     
     private void Start()
     {
@@ -44,6 +46,17 @@ public class LavaRiser : MonoBehaviour
         else
         {
             lastLivesCount = gameManager.CurrentLives;
+        }
+        
+        // Find audio manager
+        audioManager = AudioManager.Instance;
+        if (audioManager == null)
+        {
+            Debug.LogWarning("LavaRiser: AudioManager not found! Sound will not play.");
+            
+            // Create an AudioManager if one doesn't exist
+            GameObject audioManagerObj = new GameObject("AudioManager");
+            audioManager = audioManagerObj.AddComponent<AudioManager>();
         }
     }
     
@@ -217,6 +230,13 @@ public class LavaRiser : MonoBehaviour
             pos.y += riseSpeed * Time.deltaTime;
             killZoneObject.transform.position = pos;
             
+            // Start playing sound when lava is rising
+            if (!isRising && audioManager != null)
+            {
+                audioManager.PlayLavaRisingSound();
+                isRising = true;
+            }
+            
             // Update the height of the collider as it rises
             UpdateKillZoneHeight();
             
@@ -225,6 +245,12 @@ public class LavaRiser : MonoBehaviour
             {
                 UpdateVisualizer();
             }
+        }
+        else if (isRising && audioManager != null)
+        {
+            // Stop the sound when lava has reached its maximum height
+            audioManager.StopLavaRisingSound();
+            isRising = false;
         }
     }
     
@@ -265,6 +291,13 @@ public class LavaRiser : MonoBehaviour
         Vector3 pos = killZoneObject.transform.position;
         pos.y = startHeight;
         killZoneObject.transform.position = pos;
+        
+        // Stop the lava sound when resetting
+        if (isRising && audioManager != null)
+        {
+            audioManager.StopLavaRisingSound();
+            isRising = false;
+        }
         
         // Reset the collider size
         BoxCollider collider = killZoneObject.GetComponent<BoxCollider>();

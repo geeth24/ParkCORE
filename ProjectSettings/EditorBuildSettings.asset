@@ -6,14 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: d1c3109bdb54ad54c8a2b2838528e640
-  - enabled: 1
-    path: Assets/Scenes/Level 1 (Lava).unity
-    guid: f1e29ad8fef6f4632a20b639d8d17777
+    path: Assets/Scenes/StartGameScene.unity
+    guid: 3dc359561b34c49f88717c59a2e6e7b3
   - enabled: 1
     path: Assets/Scenes/LivesScene.unity
     guid: 8e70b432b953f4f1081d4ac8949cac96
+  - enabled: 1
+    path: Assets/Scenes/Level 1 (Lava).unity
+    guid: f1e29ad8fef6f4632a20b639d8d17777
   - enabled: 1
     path: Assets/Scenes/GameOverScene.unity
     guid: 8509d9ea8bae54c219074d6ec9b5f932
