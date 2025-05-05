@@ -4,17 +4,22 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] float moveSpeed = 5f;
+    // Movement Speeds
+    [SerializeField] float movementSpeed = 5f;
     [SerializeField] float rotationSpeed = 500f;
-    [SerializeField] float jumpForce = 5f;
-    [SerializeField] float airControlFactor = 0.7f;
-    [SerializeField] float jumpCooldown = 0.1f;
+    [SerializeField] float airFactor = 0.7f;
     [SerializeField] float sprintMultiplier = 1.5f;
+    [SerializeField] float jumpPower = 5f;
+    [SerializeField] float jumpCooldown = 0.1f;
 
-    [Header("Ground Check Settings")]
+    // How close player is to touching ground
     [SerializeField] float groundCheckRadius = 0.2f;
-    [SerializeField] Vector3 groundCheckOffset;
+
+    // Allows for picking which objects are apart of the "ground"
     [SerializeField] LayerMask groundLayer;
+
+    // Position slightly below player's feet for pivot point
+    [SerializeField] Vector3 groundCheckOffset;
 
     bool isGrounded;
     bool hasControl = true;
@@ -23,7 +28,7 @@ public class PlayerController : MonoBehaviour
     public bool InAction { get; private set; }
     public bool IsHanging { get; set; }
 
-    Vector3 desiredMoveDir;
+    Vector3 desiredMoveDirection;
     Vector3 moveDir;
     Vector3 velocity;
 
@@ -37,6 +42,8 @@ public class PlayerController : MonoBehaviour
     Animator animator;
     CharacterController characterController;
     EnvironmentScanner environmentScanner;
+
+    // Components that make up a player when in use
     private void Awake()
     {
         cameraController = Camera.main.GetComponent<CameraController>();
@@ -45,19 +52,24 @@ public class PlayerController : MonoBehaviour
         environmentScanner = GetComponent<EnvironmentScanner>();
     }
 
+    // Provides basic functionalities for when our player moves and operates throughout the game
     private void Update()
     {
+        // Get x and y coordinates
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        bool clickRun = Input.GetMouseButton(0);
-        float moveAmount = clickRun ? 1f : Mathf.Clamp01(Mathf.Abs(h) + Mathf.Abs(v));
-        var moveInput = clickRun ? Vector3.forward : (new Vector3(h, 0, v)).normalized;
+        bool clickRunButton = Input.GetMouseButton(0);
 
-        desiredMoveDir = cameraController.PlanarRotation * moveInput;
-        moveDir = desiredMoveDir;
+        // Calculate magnitude of movement
+        float moveAmount = clickRunButton ? 1f : Mathf.Clamp01(Mathf.Abs(h) + Mathf.Abs(v));
 
+        // Calculate direction of movement
+        var moveInput = clickRunButton ? Vector3.forward : (new Vector3(h, 0, v)).normalized;
+        desiredMoveDirection = cameraController.PlanarRotation * moveInput;
+        moveDir = desiredMoveDirection;
+
+        // Instances where the player cannot "update"
         if (!hasControl) return;
-
         if (IsHanging) return;
 
         velocity = Vector3.zero;
@@ -65,22 +77,27 @@ public class PlayerController : MonoBehaviour
         GroundCheck();
         animator.SetBool("isGrounded", isGrounded);
         
-        // Handle jumping (space only)
+        // Handles a jump by the user
         if (isGrounded && Input.GetButtonDown("Jump") && canJump && !InAction)
         {
             Jump();
         }
         
+        // Components for if a player is currently on the ground
         if (isGrounded)
         {
+            // Make sure character is firmly on ground
             ySpeed = -0.5f;
-            float speed = moveSpeed * (clickRun ? sprintMultiplier : 1f);
-            velocity = desiredMoveDir * speed;
 
-            // Only check for ledge if we're not intentionally trying to go off the edge
-            if (moveAmount > 0 && Physics.Raycast(transform.position + desiredMoveDir * 0.5f, Vector3.down, 2f, groundLayer))
+            float speed = movementSpeed * (clickRunButton ? sprintMultiplier : 1f);
+            velocity = desiredMoveDirection * speed;
+
+            // Check if player is walking into an obstacle or ledge
+            if (moveAmount > 0 && Physics.Raycast(transform.position + desiredMoveDirection * 0.5f, Vector3.down, 2f, groundLayer))
             {
-                IsOnLedge = environmentScanner.ObstacleLedgeCheck(desiredMoveDir, out LedgeData ledgeData);
+                // Checks for specific ledge and handles that movement
+                IsOnLedge = environmentScanner.ObstacleLedgeCheck(desiredMoveDirection, out LedgeData ledgeData);
+
                 if (IsOnLedge)
                 {
                     LedgeData = ledgeData;
@@ -92,112 +109,125 @@ public class PlayerController : MonoBehaviour
                 IsOnLedge = false;
             }
 
-            animator.SetFloat("moveAmount", velocity.magnitude / moveSpeed, 0.2f, Time.deltaTime);
+            animator.SetFloat("moveAmount", velocity.magnitude / movementSpeed, 0.2f, Time.deltaTime);
         }
+
+        // If the character is not grounded then we account for gravity and other components
         else
         {
             // Apply gravity
             ySpeed += Physics.gravity.y * Time.deltaTime;
-            float speedAir = moveSpeed * (clickRun ? sprintMultiplier : 1f);
-            velocity = desiredMoveDir * speedAir * airControlFactor;
+            float speedAir = movementSpeed * (clickRunButton ? sprintMultiplier : 1f);
+            velocity = desiredMoveDirection * speedAir * airFactor;
             
-            // Set air animation blend
-            animator.SetFloat("moveAmount", velocity.magnitude / moveSpeed, 0.2f, Time.deltaTime);
+            // Apply a different speed to our animation to account for falling
+            animator.SetFloat("moveAmount", velocity.magnitude / movementSpeed, 0.2f, Time.deltaTime);
         }
 
         velocity.y = ySpeed;
 
         characterController.Move(velocity * Time.deltaTime);
 
+        // Account for if there is a rotation
         if (moveAmount > 0 && moveDir.magnitude > 0.2f)
         {
             targetRotation = Quaternion.LookRotation(moveDir);
         }
 
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation,
-            rotationSpeed * Time.deltaTime);
+        // Helps to apply a smooth rotation
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
+    // Account for our player jumping
     void Jump()
     {
-        // Apply more initial force for a snappier jump
-        ySpeed = jumpForce;
+        // Apply an upwards thrust for a real jumping look
+        ySpeed = jumpPower;
         isGrounded = false;
-        // Ensure we're really leaving the ground
+
+        
         transform.position += Vector3.up * 0.1f;
-        // Trigger jump animation using the Animator's transitions
+
+        // Apply our jumping animation
         animator.SetTrigger("jump");
-        // Start cooldown
+
+        // Make cooldown until we can jump again
         canJump = false;
         StartCoroutine(ResetJumpCooldown());
     }
 
+    // Cooldown for jumping
     IEnumerator ResetJumpCooldown()
     {
         yield return new WaitForSeconds(jumpCooldown);
         canJump = true;
     }
 
+    // Function to check if player is currently grounded
     void GroundCheck()
     {
-        // Previous ground state for transition detection
         bool wasGrounded = isGrounded;
 
-        // Skip ground check when moving upward to prevent immediate ground detection after jump
+        // Don't have to ground check if moving upward for smoothing purposes
         if (ySpeed > 0f)
         {
             isGrounded = false;
         }
+
+        // Account for moving downward (-y)
         else
         {
+            // Checks if sphere of player overlaps with sphere of another object to identify if grounded
             isGrounded = Physics.CheckSphere(transform.TransformPoint(groundCheckOffset), groundCheckRadius, groundLayer);
         }
 
-        // Make character fall immediately when stepping off a ledge
-        if (!isGrounded && desiredMoveDir.magnitude > 0.05f)
+        // Make player fall if jumping off ledge
+        if (!isGrounded && desiredMoveDirection.magnitude > 0.05f)
         {
-            ySpeed = -2f; // Increased negative value for faster falling
+            ySpeed = -2f; 
         }
 
-        // If we just landed, apply a small downward force to "stick" to the ground
+        // Applying a downward force after landing to stick
         if (!wasGrounded && isGrounded)
         {
             ySpeed = -1f;
         }
     }
 
+    // For "shimmying" or movement on a ledge
     void LedgeMovement()
     {
-        float signedAngle = Vector3.SignedAngle(LedgeData.surfaceHit.normal, desiredMoveDir, Vector3.up);
+        // Calculate angle relative to ledge
+        float signedAngle = Vector3.SignedAngle(LedgeData.surfaceHit.normal, desiredMoveDirection, Vector3.up);
         float angle = Mathf.Abs(signedAngle);
 
-        // Check if we're trying to walk off an edge intentionally (forward direction with no ground)
-        bool wantToWalkOff = Vector3.Dot(desiredMoveDir, transform.forward) > 0.7f;
+        // Check if we want to fall of ledge intentionally
+        bool wantToWalkOff = Vector3.Dot(desiredMoveDirection, transform.forward) > 0.7f;
         bool noGroundAhead = !Physics.Raycast(transform.position + transform.forward * 1.0f, Vector3.down, 2f, groundLayer);
         
-        // If player wants to walk off edge, allow it
         if (wantToWalkOff && noGroundAhead)
         {
-            // Don't restrict movement
             return;
         }
 
-        if (Vector3.Angle(desiredMoveDir, transform.forward) >= 80)
+        // If player makes a sharp turn (80), make a rotation
+        if (Vector3.Angle(desiredMoveDirection, transform.forward) >= 80)
         {
-            // Don't move, but rotate
             velocity = Vector3.zero;
             return;
         }
 
+        // If turning into a wall
         if (angle < 60)
         {
             velocity = Vector3.zero;
             moveDir = Vector3.zero;
         }
+
+        // If moving along a wall
         else if (angle < 90)
         {
-            // Angle is b/w 60 and 90, so limit the velocity to horizontal direction
-
+            // Slow speed of player
             var left = Vector3.Cross(Vector3.up, LedgeData.surfaceHit.normal);
             var dir = left * Mathf.Sign(signedAngle);
 
@@ -206,22 +236,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Function to handle multiple actions by our player
     public IEnumerator DoAction(string animName, MatchTargetParams matchParams = null,
         Quaternion targetRotation = new Quaternion(), bool rotate = false,
         float postDelay = 0f, bool mirror = false)
     {
         InAction = true;
 
+        // To handle mirror animations
         animator.SetBool("mirrorAction", mirror);
         animator.CrossFadeInFixedTime(animName, 0.2f);
         yield return null;
 
+        // Checks the current animation that is requested
         var animState = animator.GetNextAnimatorStateInfo(0);
         if (!animState.IsName(animName))
             Debug.LogError("The parkour animation is wrong!");
 
         float rotateStartTime = (matchParams != null) ? matchParams.startTime : 0f;
 
+        // Duration of animation
         float timer = 0f;
         while (timer <= animState.length)
         {
@@ -245,14 +279,15 @@ public class PlayerController : MonoBehaviour
         InAction = false;
     }
 
+    // To synchronize the animation
     void MatchTarget(MatchTargetParams mp)
     {
         if (animator.isMatchingTarget) return;
 
-        animator.MatchTarget(mp.pos, transform.rotation, mp.bodyPart, new MatchTargetWeightMask(mp.posWeight, 0),
-            mp.startTime, mp.targetTime);
+        animator.MatchTarget(mp.pos, transform.rotation, mp.bodyPart, new MatchTargetWeightMask(mp.posWeight, 0), mp.startTime, mp.targetTime);
     }
 
+    // To set the user's control over character (For movement/animations) (Can't spam movements)
     public void SetControl(bool hasControl)
     {
         this.hasControl = hasControl;
@@ -275,7 +310,8 @@ public class PlayerController : MonoBehaviour
         targetRotation = transform.rotation;
     }
 
-    public bool HasControl {
+    public bool HasControl 
+    {
         get => hasControl;
         set => hasControl = value;
     }
@@ -289,6 +325,7 @@ public class PlayerController : MonoBehaviour
     public float RotationSpeed => rotationSpeed;
 }
 
+// Target parameters for animations
 public class MatchTargetParams
 {
     public Vector3 pos;
